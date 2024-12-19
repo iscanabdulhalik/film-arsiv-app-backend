@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Role } from 'src/common/enums/role.enum';
 import { Profile } from 'src/modules/profile/entities/profile.entity';
+import { Order } from 'src/modules/order/entities/order.entity';
 
 @Entity()
 export class User {
@@ -33,6 +34,9 @@ export class User {
 
   @OneToMany(() => Profile, (profile) => profile.user, { cascade: true })
   profiles: Profile[];
+
+  @OneToMany(() => Order, (order) => order.user, { cascade: true })
+  orders: Order[];
 
   @CreateDateColumn()
   createdAt: Date;

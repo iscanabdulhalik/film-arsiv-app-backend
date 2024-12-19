@@ -13,6 +13,11 @@ import { Movie } from './modules/movie/entities/movie.entity';
 import { MovieModule } from './modules/movie/movie.module';
 import { MovieVersion } from './modules/movie/entities/movie.version.entity';
 
+import Stripe from 'stripe';
+import { StripeModule } from './modules/stripe/stripe.module';
+import { OrderModule } from './modules/order/order.module';
+import { Order } from './modules/order/entities/order.entity';
+
 @Module({
   imports: [
     JwtModule.register({
@@ -25,7 +30,7 @@ import { MovieVersion } from './modules/movie/entities/movie.version.entity';
       username: 'postgres',
       password: 'iscan',
       database: 'filmArsiv',
-      entities: [User, Profile, Movie, MovieVersion],
+      entities: [User, Profile, Movie, MovieVersion, Order],
       synchronize: true,
     }),
     AuthModule,
@@ -33,6 +38,8 @@ import { MovieVersion } from './modules/movie/entities/movie.version.entity';
     ProfileModule,
     MovieModule,
     StreamModule,
+    StripeModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [AppService],

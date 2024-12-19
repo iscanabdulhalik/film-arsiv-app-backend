@@ -27,4 +27,8 @@ export class UserService {
   async findUserByEmail(email: string): Promise<User | null> {
     return this.userRepository.findByEmail(email);
   }
+
+  async getUserWithSubscriptions(userId: string): Promise<User | null> {
+    return this.userRepository.getUserWithSubscriptions(userId);
+  }
 }

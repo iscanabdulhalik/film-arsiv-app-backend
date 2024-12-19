@@ -53,4 +53,9 @@ export class UserController {
     }
     return this.profileService.createProfile(user, profileName);
   }
+
+  @Get(':id/subscriptions')
+  async getUserSubscriptions(@Param('id') id: string) {
+    return this.userService.getUserWithSubscriptions(id);
+  }
 }

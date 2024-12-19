@@ -32,24 +32,27 @@ export class AuthService {
 
     return await this.dataSource.transaction(async (manager) => {
       const hashedPassword = await argon2.hash(createUserDto.password);
-      const userToSave = {
-        ...createUserDto,
+      const userToSave: Partial<User> = {
+        email: createUserDto.email,
         password: hashedPassword,
+        fullName: createUserDto.name, // fullName veya ilgili alan
       };
 
+      // Kullanıcıyı kaydet
       const newUser = await manager.getRepository(User).save(userToSave);
 
       if (!newUser) {
         throw new BadRequestException('Failed to create user');
       }
 
+      // Profile kaydetme
       await manager.getRepository(Profile).save({
         profileName: `${newUser.email.split('@')[0]} (Default)`,
         isDefault: true,
-        user: newUser,
+        user: newUser, // User ilişkisi
       });
 
-      delete newUser.password;
+      delete newUser.password; // Güvenlik için şifreyi kaldır
 
       return newUser;
     });

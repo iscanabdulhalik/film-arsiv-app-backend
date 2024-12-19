@@ -6,6 +6,7 @@ import {
   Matches,
   MinLength,
 } from 'class-validator';
+import { Subscription } from 'rxjs';
 
 export class CreateUserDto {
   @IsString()
@@ -31,4 +32,6 @@ export class CreateUserDto {
     minUppercase: 1,
   })
   password!: string;
+
+  subscriptions?: Subscription[];
 }
