@@ -11,27 +11,39 @@ import { JwtModule } from '@nestjs/jwt';
 import { StreamModule } from './streaming/stream.module';
 import { Movie } from './modules/movie/entities/movie.entity';
 import { MovieModule } from './modules/movie/movie.module';
-import { MovieVersion } from './modules/movie/entities/movie.version.entity';
-
-import Stripe from 'stripe';
 import { StripeModule } from './modules/stripe/stripe.module';
 import { OrderModule } from './modules/order/order.module';
 import { Order } from './modules/order/entities/order.entity';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MovieVersion } from './modules/movie/entities/movie.version.entity';
 
 @Module({
   imports: [
-    JwtModule.register({
-      secret: 'filmArsiv',
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      port: 5435,
-      host: 'localhost',
-      username: 'postgres',
-      password: 'iscan',
-      database: 'filmArsiv',
-      entities: [User, Profile, Movie, MovieVersion, Order],
-      synchronize: true,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+      }),
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get<string>('DB_HOST'),
+        port: +configService.get<number>('DB_PORT'),
+        username: configService.get<string>('DB_USERNAME'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_DATABASE'),
+        ssl: { rejectUnauthorized: false },
+        entities: [User, Profile, Movie, Order, MovieVersion],
+        synchronize: false,
+      }),
     }),
     AuthModule,
     UserModule,

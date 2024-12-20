@@ -11,7 +11,7 @@ import { Role } from 'src/common/enums/role.enum';
 import { Profile } from 'src/modules/profile/entities/profile.entity';
 import { Order } from 'src/modules/order/entities/order.entity';
 
-@Entity()
+@Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
