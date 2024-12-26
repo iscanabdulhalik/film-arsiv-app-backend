@@ -3,17 +3,18 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  PrimaryGeneratedColumn,
   DeleteDateColumn,
   OneToMany,
+  PrimaryColumn,
 } from 'typeorm';
 import { Role } from 'src/common/enums/role.enum';
 import { Profile } from 'src/modules/profile/entities/profile.entity';
 import { Order } from 'src/modules/order/entities/order.entity';
+import { Subscription } from 'src/modules/subscription/entities/subscription.entity';
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn('uuid', { default: () => 'gen_random_uuid()' })
   id: string;
 
   @Column({ unique: true })
@@ -37,6 +38,11 @@ export class User {
 
   @OneToMany(() => Order, (order) => order.user, { cascade: true })
   orders: Order[];
+
+  @OneToMany(() => Subscription, (subscription) => subscription.user, {
+    cascade: true,
+  })
+  subscriptions: Subscription[];
 
   @CreateDateColumn()
   createdAt: Date;

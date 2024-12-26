@@ -18,7 +18,7 @@ import { RolesGuard } from 'src/common/guards/role.guard';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 
 @Controller('users')
-@UseGuards(JwtAuthGuard, AuthGuard)
+// @UseGuards(JwtAuthGuard, AuthGuard)
 export class UserController {
   constructor(
     private readonly profileService: ProfileService,
@@ -26,7 +26,7 @@ export class UserController {
   ) {}
 
   @Get('')
-  @UseGuards(RolesGuard)
+  // @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
   async getAllUsers() {
     return this.userService.getAllUsers();

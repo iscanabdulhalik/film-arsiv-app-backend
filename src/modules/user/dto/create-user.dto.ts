@@ -15,7 +15,7 @@ export class CreateUserDto {
   @Matches(/^[a-zA-ZğüşıöçĞÜŞİÖÇ\s]+$/, {
     message: 'Ad alanı sadece harf içermelidir.',
   })
-  name!: string;
+  fullName!: string;
 
   @IsNotEmpty()
   @IsEmail({}, { message: 'Geçerli bir e-posta adresi giriniz' })

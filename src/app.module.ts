@@ -16,6 +16,8 @@ import { OrderModule } from './modules/order/order.module';
 import { Order } from './modules/order/entities/order.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MovieVersion } from './modules/movie/entities/movie.version.entity';
+import { SubscriptionModule } from './modules/subscription/subscription.module';
+import { Subscription } from './modules/subscription/entities/subscription.entity';
 
 @Module({
   imports: [
@@ -41,7 +43,7 @@ import { MovieVersion } from './modules/movie/entities/movie.version.entity';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
         ssl: { rejectUnauthorized: false },
-        entities: [User, Profile, Movie, Order, MovieVersion],
+        entities: [User, Profile, Movie, Order, MovieVersion, Subscription],
         synchronize: false,
       }),
     }),
@@ -52,6 +54,7 @@ import { MovieVersion } from './modules/movie/entities/movie.version.entity';
     StreamModule,
     StripeModule,
     OrderModule,
+    SubscriptionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

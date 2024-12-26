@@ -6,6 +6,7 @@ import { UserController } from './user.controller';
 import { ProfileModule } from '../profile/profile.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { UserRepository } from './user-repository';
+import { SubscriptionModule } from '../subscription/subscription.module';
 // import { SubscriptionModule } from '../subscription/subscription.module';
 
 @Module({
@@ -13,10 +14,10 @@ import { UserRepository } from './user-repository';
     TypeOrmModule.forFeature([User]),
     ProfileModule,
     forwardRef(() => AuthModule),
-    // forwardRef(() => SubscriptionModule), // SubscriptionModule döngüsel bağımlılığı çözer
+    forwardRef(() => SubscriptionModule),
   ],
   providers: [UserService, UserRepository],
   controllers: [UserController],
-  exports: [UserService, UserRepository],
+  exports: [UserService, UserRepository, TypeOrmModule],
 })
 export class UserModule {}

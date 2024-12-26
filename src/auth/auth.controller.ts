@@ -6,6 +6,7 @@ import {
   UnauthorizedException,
   Logger,
   BadRequestException,
+  Get,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from 'src/modules/user/dto/create-user.dto';
@@ -42,5 +43,11 @@ export class AuthController {
 
       throw new UnauthorizedException('Login failed. Invalid credentials.');
     }
+  }
+
+  @Get('/getMe')
+  @HttpCode(200)
+  async getMe(userId: string) {
+    return this.authService.getMe(userId);
   }
 }

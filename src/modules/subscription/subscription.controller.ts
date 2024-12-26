@@ -1,24 +1,34 @@
-// import { Body, Controller, Post } from '@nestjs/common';
-// import { StripeService } from '../stripe/stripe.service';
-// import { SubscriptionService } from './subscription.service';
-// import Stripe from 'stripe';
+import { Controller, Post, Req, Res, HttpStatus, Logger } from '@nestjs/common';
+import { Request, Response } from 'express';
+import { StripeService } from '../stripe/stripe.service';
+import Stripe from 'stripe';
 
-// @Controller('subscription')
-// export class WebhookController {
-//   constructor(
-//     private readonly stripeService: StripeService,
-//     private readonly subscriptionService: SubscriptionService,
-//   ) {}
+@Controller('subscription')
+export class SubscriptionController {
+  private readonly logger = new Logger(SubscriptionController.name);
 
-//   @Post('webhook')
-//   async handleStripeWebhook(@Body() body: any): Promise<void> {
-//     const event = this.stripeService.verifyWebhook(body);
+  constructor(private readonly stripeService: StripeService) {}
 
-//     if (event.type === 'checkout.session.completed') {
-//       const session = event.data.object as Stripe.Checkout.Session;
-//       const userId = session.metadata.userId;
+  @Post('webhook')
+  async handleWebhook(
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<void> {
+    try {
+      const signature = req.headers['stripe-signature'] as string;
+      const event = this.stripeService.verifyWebhook(req.body, signature);
 
-//       await this.subscriptionService.createSubscription(userId);
-//     }
-//   }
-// }
+      // Handle the event
+      await this.stripeService.handleCheckoutSessionCompleted(
+        event.data.object as Stripe.Checkout.Session,
+      );
+
+      res.status(HttpStatus.OK).send();
+    } catch (error) {
+      this.logger.error(`Webhook Error: ${error.message}`);
+      res
+        .status(HttpStatus.BAD_REQUEST)
+        .send(`Webhook Error: ${error.message}`);
+    }
+  }
+}

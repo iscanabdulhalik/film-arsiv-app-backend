@@ -31,4 +31,8 @@ export class UserService {
   async getUserWithSubscriptions(userId: string): Promise<User | null> {
     return this.userRepository.getUserWithSubscriptions(userId);
   }
+
+  async getMe(userId: string): Promise<User | null> {
+    return this.userRepository.getMe(userId);
+  }
 }

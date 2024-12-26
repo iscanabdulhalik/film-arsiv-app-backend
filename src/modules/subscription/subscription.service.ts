@@ -1,74 +1,60 @@
-// import { Injectable } from '@nestjs/common';
-// import { InjectRepository } from '@nestjs/typeorm';
-// import { Repository } from 'typeorm';
-// import { Subscription } from './entities/subscription.entity';
-// import { User } from '../user/entities/user.entity';
+import { Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import {
+  Subscription,
+  SubscriptionStatus,
+} from './entities/subscription.entity';
+import { User } from '../user/entities/user.entity';
 
-// @Injectable()
-// export class SubscriptionService {
-//   constructor(
-//     @InjectRepository(Subscription)
-//     private subscriptionRepo: Repository<Subscription>,
-//   ) {}
+@Injectable()
+export class SubscriptionService {
+  private readonly logger = new Logger(SubscriptionService.name);
 
-//   async createSubscription(userId: string): Promise<Subscription> {
-//     const currentDate = new Date();
-//     const oneMonthLater = new Date();
-//     oneMonthLater.setMonth(currentDate.getMonth() + 1);
+  constructor(
+    @InjectRepository(Subscription)
+    private readonly subscriptionRepo: Repository<Subscription>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+  ) {}
 
-//     const subscription = this.subscriptionRepo.create({
-//       user: { id: userId } as User,
-//       startDate: currentDate,
-//       endDate: oneMonthLater,
-//       status: 'active',
-//     });
-//     return this.subscriptionRepo.save(subscription);
-//   }
+  async createSubscription(userId: string): Promise<Subscription> {
+    const user = await this.userRepo.findOneOrFail({ where: { id: userId } });
 
-//   async activateSubscription(userId: string): Promise<void> {
-//     const subscription = await this.subscriptionRepo.findOne({
-//       where: { user: { id: userId }, status: 'inactive' },
-//     });
-//     if (subscription) {
-//       subscription.status = 'active';
-//       subscription.startDate = new Date();
-//       const oneMonthLater = new Date();
-//       oneMonthLater.setMonth(new Date().getMonth() + 1);
-//       subscription.endDate = oneMonthLater;
+    const subscription = this.subscriptionRepo.create({
+      user,
+      userId,
+      status: SubscriptionStatus.ACTIVE,
+      stripeSubscriptionId: '', // Add your Stripe subscription ID
+      stripePriceId: '', // Add your Stripe price ID
+      currentPeriodEnd: new Date(), // Add your subscription end date
+    });
 
-//       await this.subscriptionRepo.save(subscription);
-//     }
-//   }
+    return this.subscriptionRepo.save(subscription);
+  }
 
-//   async expireInactiveSubscriptions(): Promise<void> {
-//     const now = new Date();
-//     const oneMonthLater = new Date();
-//     oneMonthLater.setMonth(now.getMonth() + 1);
-//     const expiredSubscriptions = await this.subscriptionRepo.find({
-//       where: { status: 'active', endDate: oneMonthLater },
-//     });
+  async getActiveSubscription(userId: string): Promise<Subscription | null> {
+    return this.subscriptionRepo.findOne({
+      where: {
+        userId,
+        status: SubscriptionStatus.ACTIVE,
+      },
+      relations: ['user'],
+    });
+  }
 
-//     for (const subscription of expiredSubscriptions) {
-//       subscription.status = 'inactive';
-//       await this.subscriptionRepo.save(subscription);
-//     }
-//   }
+  async deactivateSubscription(userId: string): Promise<void> {
+    const subscription = await this.subscriptionRepo.findOne({
+      where: {
+        userId,
+        status: SubscriptionStatus.ACTIVE,
+      },
+    });
 
-//   async getUserSubscriptions(userId: string): Promise<Subscription[]> {
-//     return this.subscriptionRepo.find({ where: { user: { id: userId } } });
-//   }
-
-//   async cancelSubscription(subscriptionId: number): Promise<void> {
-//     await this.subscriptionRepo.update(subscriptionId, {
-//       status: 'inactive',
-//       endDate: new Date(),
-//     });
-//   }
-
-//   async hasActiveSubscription(userId: string): Promise<boolean> {
-//     const activeSubscription = await this.subscriptionRepo.findOne({
-//       where: { user: { id: userId }, status: 'active' },
-//     });
-//     return !!activeSubscription;
-//   }
-// }
+    if (subscription) {
+      subscription.status = SubscriptionStatus.INACTIVE;
+      subscription.canceledAt = new Date();
+      await this.subscriptionRepo.save(subscription);
+    }
+  }
+}

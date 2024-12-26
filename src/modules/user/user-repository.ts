@@ -31,7 +31,7 @@ export class UserRepository {
     const user: DeepPartial<User> = {
       email: createUserDto.email,
       password: createUserDto.password,
-      fullName: createUserDto.name,
+      fullName: createUserDto.fullName,
       // subscriptions: [],
       profiles: [],
     };
@@ -43,6 +43,13 @@ export class UserRepository {
     return this.userRepository.findOne({
       where: { id: userId },
       relations: ['subscriptions'],
+    });
+  }
+
+  async getMe(userId: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['profiles'],
     });
   }
 }

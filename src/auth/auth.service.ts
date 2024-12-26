@@ -35,7 +35,7 @@ export class AuthService {
       const userToSave: Partial<User> = {
         email: createUserDto.email,
         password: hashedPassword,
-        fullName: createUserDto.name, // fullName veya ilgili alan
+        fullName: createUserDto.fullName, // fullName veya ilgili alan
       };
 
       // Kullanıcıyı kaydet
@@ -102,5 +102,9 @@ export class AuthService {
       email: user.email,
     };
     return { access_token: this.jwtService.sign(payload) };
+  }
+
+  async getMe(userId: string): Promise<User | null> {
+    return this.userService.getMe(userId);
   }
 }

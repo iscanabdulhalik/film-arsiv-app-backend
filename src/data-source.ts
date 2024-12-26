@@ -6,6 +6,7 @@ import { Movie } from './modules/movie/entities/movie.entity';
 import { Profile } from './modules/profile/entities/profile.entity';
 import { User } from './modules/user/entities/user.entity';
 import 'reflect-metadata';
+import { Subscription } from './modules/subscription/entities/subscription.entity';
 
 dotenv.config();
 
@@ -17,7 +18,7 @@ const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
   ssl: { rejectUnauthorized: false },
-  entities: [User, Profile, Movie, Order, MovieVersion],
+  entities: [User, Profile, Movie, Order, MovieVersion, Subscription],
   migrations: ['src/migrations/*.ts'],
   synchronize: false,
   logging: true,
