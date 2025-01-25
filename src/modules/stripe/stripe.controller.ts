@@ -1,26 +1,49 @@
-import { Controller, Post, Req, Res, HttpStatus, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Req,
+  Res,
+  HttpException,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import { StripeService } from './stripe.service';
 import Stripe from 'stripe';
 
-@Controller('webhook')
+@Controller('stripe')
 export class StripeController {
   private readonly logger = new Logger(StripeController.name);
-  private readonly eventHandlers: Record<
-    string,
-    (event: Stripe.Event) => Promise<void>
-  >;
 
-  constructor(private readonly stripeService: StripeService) {
-    this.eventHandlers = {
-      'checkout.session.completed': async (event: Stripe.Event) => {
-        const session = event.data.object as Stripe.Checkout.Session;
-        await this.stripeService.handleCheckoutSessionCompleted(session);
-      },
-    };
+  constructor(private readonly stripeService: StripeService) {}
+
+  @Post('create-subscription')
+  async createSubscription(
+    @Body('userId') userId: string,
+    @Body('priceId') priceId: string,
+  ) {
+    if (!userId || !priceId) {
+      throw new HttpException(
+        'userId and priceId are required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    try {
+      const session = await this.stripeService.createCheckoutSession(
+        userId,
+        priceId,
+      );
+      return { sessionId: session.id, url: session.url };
+    } catch (error) {
+      this.logger.error(`Error creating subscription: ${error.message}`);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
-  @Post('stripe')
+  // Uç nokta: Webhook dinleyici
+  @Post('webhook')
   async handleWebhook(
     @Req() req: Request,
     @Res() res: Response,
@@ -37,10 +60,10 @@ export class StripeController {
           signature,
         );
 
-        const handler = this.eventHandlers[event.type];
-        if (handler) {
-          await handler(event);
-          this.logger.log(`Successfully processed ${event.type}`);
+        if (event.type === 'checkout.session.completed') {
+          const session = event.data.object as Stripe.Checkout.Session;
+          await this.stripeService.handleCheckoutSessionCompleted(session);
+          this.logger.log(`Processed event: ${event.type}`);
         } else {
           this.logger.warn(`Unhandled event type: ${event.type}`);
         }

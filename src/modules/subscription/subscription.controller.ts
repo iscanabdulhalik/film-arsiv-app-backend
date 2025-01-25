@@ -1,34 +1,19 @@
-import { Controller, Post, Req, Res, HttpStatus, Logger } from '@nestjs/common';
-import { Request, Response } from 'express';
-import { StripeService } from '../stripe/stripe.service';
-import Stripe from 'stripe';
+import { Controller, Get, Param, NotFoundException } from '@nestjs/common';
+import { SubscriptionService } from './subscription.service';
 
-@Controller('subscription')
+@Controller('subscriptions')
 export class SubscriptionController {
-  private readonly logger = new Logger(SubscriptionController.name);
+  constructor(private readonly subscriptionService: SubscriptionService) {}
 
-  constructor(private readonly stripeService: StripeService) {}
-
-  @Post('webhook')
-  async handleWebhook(
-    @Req() req: Request,
-    @Res() res: Response,
-  ): Promise<void> {
-    try {
-      const signature = req.headers['stripe-signature'] as string;
-      const event = this.stripeService.verifyWebhook(req.body, signature);
-
-      // Handle the event
-      await this.stripeService.handleCheckoutSessionCompleted(
-        event.data.object as Stripe.Checkout.Session,
+  @Get(':userId')
+  async getUserSubscription(@Param('userId') userId: string) {
+    const subscription =
+      await this.subscriptionService.getActiveSubscription(userId);
+    if (!subscription) {
+      throw new NotFoundException(
+        'No active subscription found for this user.',
       );
-
-      res.status(HttpStatus.OK).send();
-    } catch (error) {
-      this.logger.error(`Webhook Error: ${error.message}`);
-      res
-        .status(HttpStatus.BAD_REQUEST)
-        .send(`Webhook Error: ${error.message}`);
     }
+    return subscription;
   }
 }

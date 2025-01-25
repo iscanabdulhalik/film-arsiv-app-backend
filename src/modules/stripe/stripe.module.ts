@@ -17,6 +17,7 @@ import { StripeController } from './stripe.controller';
     TypeOrmModule.forFeature([Subscription, User]),
     forwardRef(() => SubscriptionModule),
   ],
+  controllers: [StripeController],
   providers: [StripeService],
   exports: [StripeService],
 })
